@@ -41,15 +41,22 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
+        { 
+          error: 'User not found', 
+          errorType: 'USER_NOT_FOUND',
+          message: 'No account found with this email address'
+        },
+        { status: 404 }
       );
     }
 
     // Check if user is active
     if (!user.isActive) {
       return NextResponse.json(
-        { error: 'Account is disabled. Please contact support.' },
+        { 
+          error: 'Account is disabled. Please contact support.',
+          errorType: 'ACCOUNT_DISABLED'
+        },
         { status: 403 }
       );
     }
@@ -59,7 +66,11 @@ export async function POST(request: NextRequest) {
     
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { 
+          error: 'Invalid password', 
+          errorType: 'INVALID_PASSWORD',
+          message: 'The password you entered is incorrect'
+        },
         { status: 401 }
       );
     }
