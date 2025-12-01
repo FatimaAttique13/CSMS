@@ -1,0 +1,82 @@
+/node_modules
+node_modules/
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+dist
+build
+coverage
+.vscode
+.idea
+/client/files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+FRONTEND_FIX_SUMMARY.md
+READY_TO_TEST.md
+.cache
+.next
+out
+*.tsbuildinfo
+public/locales
+*.pem
+*.key
+*.crt
+*.p12
+*.orig
+*.rej
+*.swp
+*.swo
+*.bak
+*.tmp
+*.old
+*.backup
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+/files
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
