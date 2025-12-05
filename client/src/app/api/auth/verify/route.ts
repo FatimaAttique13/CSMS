@@ -6,19 +6,25 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get user ID from query params or headers
+    // Get user ID or email from query params
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const email = searchParams.get('email');
 
-    if (!userId) {
+    if (!userId && !email) {
       return NextResponse.json(
-        { error: 'User ID is required' },
+        { error: 'User ID or email is required' },
         { status: 400 }
       );
     }
 
-    // Find user
-    const user = await User.findById(userId).select('-password');
+    // Find user by ID or email
+    let user;
+    if (userId) {
+      user = await User.findById(userId).select('-password');
+    } else if (email) {
+      user = await User.findOne({ email: email.toLowerCase() }).select('-password');
+    }
     
     if (!user) {
       return NextResponse.json(
@@ -35,7 +41,14 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { user },
+      { user: {
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+        profile: user.profile,
+        fullName: user.fullName,
+        isActive: user.isActive
+      } },
       { status: 200 }
     );
   } catch (error: any) {

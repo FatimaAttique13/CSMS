@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
 
 import { 
@@ -49,12 +50,26 @@ const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { addToCart, openCart, totalItems } = useCart();
 
   const updateQuantity = (productId, change) => {
     setQuantities(prev => ({
       ...prev,
       [productId]: Math.max(0, (prev[productId] || 0) + change)
     }));
+  };
+
+  const handleAddToCart = (product) => {
+    const quantity = quantities[product.id] || 1;
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      unit: product.unit,
+      image: product.image
+    }, quantity);
+    setQuantities(prev => ({ ...prev, [product.id]: 0 }));
+    openCart();
   };
 
   // Fetch products from API
@@ -207,6 +222,7 @@ const ProductsPage = () => {
             {/* Action Buttons */}
             <div className={`space-y-3 ${isListView ? 'w-48' : ''}`}>
               <button 
+                onClick={() => handleAddToCart(product)}
                 className={`w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-2xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={!product.inStock}
               >
@@ -255,15 +271,13 @@ const ProductsPage = () => {
                 <Link href="/products" className="px-4 py-2 text-blue-600 font-medium transition-all duration-300 rounded-full bg-white/40 text-sm">
                   Products
                 </Link>
-                <Link href="/place-order" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
+                <Link href="/orders/place" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
                   Place Order
                 </Link>
                 <Link href="/track-order" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
                   Track Order
                 </Link>
-                <Link href="/admin/analytics" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
-                  Admin
-                </Link>
+                
                 <Link href="/about" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
                   About
                 </Link>
@@ -284,6 +298,17 @@ const ProductsPage = () => {
                 </div>
               ) : (
                 <div className="hidden lg:flex items-center space-x-3">
+                  <button
+                    onClick={openCart}
+                    className="relative text-black-800 hover:text-blue-600 font-medium px-4 py-2 rounded-full hover:bg-white/40 transition-all duration-300 text-sm flex items-center gap-2"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    {totalItems > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        {totalItems}
+                      </span>
+                    )}
+                  </button>
                   <button onClick={() => logout()} className="text-black-800 hover:text-blue-600 font-medium px-4 py-2 rounded-full hover:bg-white/40 transition-all duration-300 text-sm">Logout</button>
                 </div>
               )}
@@ -313,7 +338,7 @@ const ProductsPage = () => {
                   <Link href="/products" className="px-4 py-3 text-blue-600 bg-white/40 rounded-2xl font-medium transition-all duration-300">
                     Products
                   </Link>
-                  <Link href="/place-order" className="px-4 py-3 text-gray-800 hover:text-blue-600 hover:bg-white/40 rounded-2xl font-medium transition-all duration-300">
+                  <Link href="/orders/place" className="px-4 py-3 text-gray-800 hover:text-blue-600 hover:bg-white/40 rounded-2xl font-medium transition-all duration-300">
                     Place Order
                   </Link>
                   <Link href="/track-order" className="px-4 py-3 text-gray-800 hover:text-blue-600 hover:bg-white/40 rounded-2xl font-medium transition-all duration-300">
@@ -336,6 +361,17 @@ const ProductsPage = () => {
                     </div>
                   ) : (
                     <div className="pt-4 space-y-3 border-t border-white/20">
+                      <button
+                        onClick={openCart}
+                        className="w-full text-left text-gray-800 hover:text-blue-600 font-medium px-4 py-3 rounded-2xl hover:bg-white/40 transition-all duration-300 flex items-center justify-between"
+                      >
+                        <span>Shopping Cart</span>
+                        {totalItems > 0 && (
+                          <span className="bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                            {totalItems}
+                          </span>
+                        )}
+                      </button>
                       <button onClick={() => logout()} className="w-full text-center text-gray-800 hover:text-blue-600 font-medium px-4 py-3 rounded-2xl hover:bg-white/40 transition-all duration-300 border border-white/30">Logout</button>
                     </div>
                   )}

@@ -22,4 +22,5 @@ const productSchema = new mongoose.Schema({
 
 productSchema.index({ name: 'text', description: 'text' });
 
-module.exports = mongoose.model('Product', productSchema);
+// Prevent OverwriteModelError during dev/hot reload
+module.exports = mongoose.models.Product || mongoose.model('Product', productSchema);

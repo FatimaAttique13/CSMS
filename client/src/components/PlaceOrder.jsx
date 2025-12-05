@@ -2,363 +2,114 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/context/CartContext';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 import { 
-  Truck, 
-  FileText, 
-  Mountain, 
   Factory, 
-  Search, 
   CheckCircle, 
-  Clock, 
   MapPin,
-  Phone,
-  Mail,
-  Building2,
-  ArrowRight,
-  Package,
-  Shield,
-  Zap,
-  Star,
-  Users,
-  Calendar,
-  TrendingUp,
-  Award,
-  Settings,
   Menu,
   X,
-  ChevronDown,
-  Plus,
-  Minus,
+  ArrowRight,
   ShoppingCart,
-  Calculator,
-  CreditCard,
-  User,
-  MapIcon,
-  NotebookPen
+  Minus,
+  Plus
 } from 'lucide-react';
 
-/* ---------- Extracted Components (stable identities) ---------- */
-
-function StepIndicator({ steps, currentStep }) {
-  return (
-    <div className="mb-12 sm:mb-16">
-      <div className="flex items-center justify-center">
-        {steps.map((step, index) => (
-          <div key={step.id} className="flex items-center">
-            <div className={`flex flex-col items-center ${index !== 0 ? 'ml-4 sm:ml-8' : ''}`}>
-              <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center border-4 transition-all duration-300 ${
-                currentStep >= step.id 
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 border-blue-600 text-white shadow-lg' 
-                  : 'bg-white border-gray-300 text-gray-400'
-              }`}>
-                <step.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div className="text-center mt-3 max-w-20 sm:max-w-24">
-                <p className={`text-xs sm:text-sm font-bold ${currentStep >= step.id ? 'text-blue-600' : 'text-gray-400'}`}>
-                  {step.title}
-                </p>
-                <p className="text-xs text-gray-500 hidden sm:block mt-1">
-                  {step.description}
-                </p>
-              </div>
-            </div>
-            {index < steps.length - 1 && (
-              <div className={`w-8 sm:w-16 h-1 mx-2 sm:mx-4 mt-[-2rem] sm:mt-[-2.5rem] transition-all duration-300 ${
-                currentStep > step.id ? 'bg-blue-600' : 'bg-gray-300'
-              }`}></div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ProductSelection({ selectedProducts, updateQuantity, setProductQuantity, total, itemsCount }) {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-6">Select Products</h2>
-      
-      {selectedProducts.map(product => (
-        <div key={product.id} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8 hover:shadow-2xl transition-all duration-300">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            <img 
-              src={product.image} 
-              alt={product.name}
-              className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-2xl"
-            />
-            
-            <div className="flex-1">
-              <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-2">{product.name}</h3>
-              <p className="text-lg sm:text-xl font-bold text-blue-600 mb-4">
-                SAR {product.price} <span className="text-gray-500 font-medium">{product.unit}</span>
-              </p>
-              
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => updateQuantity(product.id, -1)}
-                    className="bg-gray-100 hover:bg-gray-200 p-3 rounded-xl transition-colors duration-200"
-                    disabled={product.quantity === 0}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <input
-                    type="number"
-                    min="0"
-                    aria-label={`${product.name} quantity`}
-                    className="w-20 text-center font-bold text-xl bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300 hide-arrow"
-                    value={product.quantity}
-                    onChange={(e) => setProductQuantity(product.id, e.target.value)}
-                  />
-                  <button 
-                    onClick={() => updateQuantity(product.id, 1)}
-                    className="bg-gray-100 hover:bg-gray-200 p-3 rounded-xl transition-colors duration-200"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-                
-                <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900">
-                    SAR {(product.price * product.quantity).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-
-      {/* Order Summary */}
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-3xl p-6 sm:p-8 border border-blue-200">
-        <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-4">Order Summary</h3>
-        <div className="space-y-2">
-          <div className="flex justify-between text-gray-700">
-            <span className="font-medium">Total Items:</span>
-            <span className="font-bold">{itemsCount}</span>
-          </div>
-          <div className="flex justify-between text-xl sm:text-2xl font-black text-blue-600 pt-2 border-t border-blue-200">
-            <span>Total Amount:</span>
-            <span>SAR {total.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DeliveryDetails({ orderDetails, onChange, today }) {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-6">Delivery Details</h2>
-      
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Full Name <span className='text-red-400'>*</span></label>
-            <input
-              type="text"
-              name="customerName"
-              value={orderDetails.customerName}
-              onChange={onChange}
-              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
-              placeholder="Enter your full name"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Email Address <span className='text-red-400'>*</span></label>
-            <input
-              type="email"
-              name="email"
-              value={orderDetails.email}
-              onChange={onChange}
-              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
-              placeholder="your.email@example.com"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number <span className='text-red-400'>*</span></label>
-            <input
-              type="tel"
-              name="phone"
-              value={orderDetails.phone}
-              onChange={onChange}
-              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
-              placeholder="+966 XX XXX XXXX"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">City <span className='text-red-400'>*</span></label>
-            <select
-              name="city"
-              value={orderDetails.city}
-              onChange={onChange}
-              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
-            >
-              <option value="Jeddah">Jeddah</option>
-              <option value="Makkah">Makkah</option>
-            </select>
-          </div>
-          
-          <div className="md:col-span-2">
-            <label className="block text-sm font-bold text-gray-700 mb-2">Delivery Address <span className='text-red-400'>*</span></label>
-            <textarea
-              name="address"
-              value={orderDetails.address}
-              onChange={onChange}
-              rows="3"
-              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
-              placeholder="Enter complete delivery address with landmarks"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Preferred Delivery Date <span className='text-red-400'>*</span></label>
-            <input
-              type="date"
-              name="deliveryDate"
-              value={orderDetails.deliveryDate}
-              onChange={onChange}
-              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
-              min={today}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Special Notes (Optional)</label>
-            <textarea
-              name="notes"
-              value={orderDetails.notes}
-              onChange={onChange}
-              rows="3"
-              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
-              placeholder="Any special delivery instructions or notes"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ReviewConfirm({ selectedProducts, orderDetails, total }) {
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-6">Review & Confirm Order</h2>
-      
-      {/* Order Items Review */}
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8">
-        <h3 className="text-xl font-black text-gray-900 mb-4">Order Items</h3>
-        {selectedProducts.filter(p => p.quantity > 0).map(product => (
-          <div key={product.id} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0">
-            <div>
-              <p className="font-bold text-gray-900">{product.name}</p>
-              <p className="text-gray-600">Qty: {product.quantity} × SAR {product.price}</p>
-            </div>
-            <p className="font-bold text-blue-600">SAR {(product.price * product.quantity).toFixed(2)}</p>
-          </div>
-        ))}
-        
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="flex justify-between text-2xl font-black text-blue-600">
-            <span>Total Amount:</span>
-            <span>SAR {total.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Delivery Details Review */}
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8">
-        <h3 className="text-xl font-black text-gray-900 mb-4">Delivery Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-bold text-gray-500">Customer Name</p>
-            <p className="font-bold text-gray-900">{orderDetails.customerName || 'Not provided'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-500">Email</p>
-            <p className="font-bold text-gray-900">{orderDetails.email || 'Not provided'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-500">Phone</p>
-            <p className="font-bold text-gray-900">{orderDetails.phone || 'Not provided'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-500">City</p>
-            <p className="font-bold text-gray-900">{orderDetails.city}</p>
-          </div>
-          <div className="md:col-span-2">
-            <p className="text-sm font-bold text-gray-500">Delivery Address</p>
-            <p className="font-bold text-gray-900">{orderDetails.address || 'Not provided'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-500">Delivery Date</p>
-            <p className="font-bold text-gray-900">{orderDetails.deliveryDate || 'Not selected'}</p>
-          </div>
-          {orderDetails.notes && (
-            <div className="md:col-span-2">
-              <p className="text-sm font-bold text-gray-500">Special Notes</p>
-              <p className="font-bold text-gray-900">{orderDetails.notes}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Main Page ---------- */
+/* ---------- Main Component ---------- */
 
 const PlaceOrder = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+  const { cart, updateQuantity, removeFromCart, totalPrice, totalItems, clearCart, openCart } = useCart();
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  // Fetch products from API
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  // Fetch complete user details on mount (waits for auth to finish)
   useEffect(() => {
-    const fetchProducts = async () => {
+    if (authLoading) return;
+
+    const fetchUserDetails = async () => {
+      // Determine email source: AuthContext or localStorage fallback
+      let email = user?.email;
+      if (!email) {
+        try {
+          const raw = localStorage.getItem('csms_user');
+          if (raw) email = JSON.parse(raw).email;
+        } catch {}
+      }
+
+      if (!email) {
+        // No user email available – keep user on page and let button guard handle it
+        setLoadingUser(false);
+        return;
+      }
+
       try {
-        setLoading(true);
-        const response = await fetch('/api/products');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
+        // Check cache first
+        const cachedUser = sessionStorage.getItem('user_details_cache');
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          const cacheAge = Date.now() - parsed.timestamp;
+          if (cacheAge < 5 * 60 * 1000) {
+            setUserDetails(parsed.data);
+            setLoadingUser(false);
+            return;
+          }
         }
 
-        const data = await response.json();
-        
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map(p => ({
-            id: p._id || p.sku || p.name,
-            name: p.name,
-            price: typeof p.unitPrice === 'number' ? p.unitPrice : 0,
-            unit: p.unit === 'bags' ? 'per 50kg bag' : p.unit === 'tons' ? 'per ton' : `per ${p.unit}`,
-            quantity: 0,
-            image: p.imageUrl || 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=400&q=80'
+        // Fetch from API
+        const response = await fetch(`/api/auth/verify?email=${encodeURIComponent(email)}`);
+        if (response.ok) {
+          const data = await response.json();
+          const userData = data.user;
+
+          // Cache the user data
+          sessionStorage.setItem('user_details_cache', JSON.stringify({
+            data: userData,
+            timestamp: Date.now()
           }));
-          setSelectedProducts(mapped);
+
+          // Update localStorage with complete user data (keeps any existing props)
+          try {
+            const existing = localStorage.getItem('csms_user');
+            const merged = existing ? { ...JSON.parse(existing), ...{
+              _id: userData._id,
+              email: userData.email,
+              role: userData.role,
+              name: userData.fullName || userData.profile?.firstName || user?.name
+            }} : {
+              _id: userData._id,
+              email: userData.email,
+              role: userData.role,
+              name: userData.fullName || userData.profile?.firstName
+            };
+            localStorage.setItem('csms_user', JSON.stringify(merged));
+          } catch {}
+
+          setUserDetails(userData);
+        } else {
+          console.error('Failed to fetch user details:', await response.text());
         }
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError(err.message);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
       } finally {
-        setLoading(false);
+        setLoadingUser(false);
       }
     };
 
-    fetchProducts();
-  }, []);
+    fetchUserDetails();
+  }, [authLoading, user?.email]);
+
+  useEffect(() => {
+    if (cart.length === 0) {
+      router.push('/products');
+    }
+  }, [cart, router]);
 
   const [orderDetails, setOrderDetails] = useState({
     customerName: '',
@@ -370,88 +121,128 @@ const PlaceOrder = () => {
     notes: ''
   });
 
-  // Handlers
+  // Update order details when user details are loaded
+  useEffect(() => {
+    if (userDetails) {
+      setOrderDetails(prev => ({
+        ...prev,
+        customerName: userDetails.fullName || userDetails.profile?.firstName || prev.customerName,
+        email: userDetails.email || prev.email,
+        phone: userDetails.profile?.phone || prev.phone,
+        address: userDetails.addresses?.[0]?.line1 || prev.address,
+        city: userDetails.addresses?.[0]?.city || prev.city
+      }));
+    }
+  }, [userDetails]);
+
   const handleOrderDetailChange = useCallback((e) => {
     const { name, value } = e.target;
-    setOrderDetails(prev => (prev[name] === value ? prev : { ...prev, [name]: value }));
+    setOrderDetails(prev => ({ ...prev, [name]: value }));
   }, []);
-
-  const updateQuantity = useCallback((productId, change) => {
-    setSelectedProducts(prev => prev.map(product => 
-      product.id === productId 
-        ? { ...product, quantity: Math.max(0, product.quantity + change) }
-        : product
-    ));
-  }, []);
-
-  const setProductQuantity = useCallback((productId, value) => {
-    const numeric = Number.isNaN(Number(value)) ? 0 : Number(value);
-    setSelectedProducts(prev => prev.map(product => 
-      product.id === productId 
-        ? { ...product, quantity: Math.max(0, numeric) }
-        : product
-    ));
-  }, []);
-
-  // Derived values
-  const total = useMemo(() => {
-    return selectedProducts.reduce((sum, product) => sum + product.price * product.quantity, 0);
-  }, [selectedProducts]);
-
-  const itemsCount = useMemo(() => {
-    return selectedProducts.reduce((count, product) => count + product.quantity, 0);
-  }, [selectedProducts]);
-
-  const steps = useMemo(() => ([
-    { id: 1, title: 'Select Products', icon: Package, description: 'Choose materials and quantities' },
-    { id: 2, title: 'Delivery Details', icon: MapPin, description: 'Provide delivery information' },
-    { id: 3, title: 'Review & Confirm', icon: CheckCircle, description: 'Review your order' }
-  ]), []);
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
-
-  const renderCurrentStep = () => {
-    switch(currentStep) {
-      case 1:
-        return (
-          <ProductSelection
-            selectedProducts={selectedProducts}
-            updateQuantity={updateQuantity}
-            setProductQuantity={setProductQuantity}
-            total={total}
-            itemsCount={itemsCount}
-          />
-        );
-      case 2:
-        return (
-          <DeliveryDetails
-            orderDetails={orderDetails}
-            onChange={handleOrderDetailChange}
-            today={today}
-          />
-        );
-      case 3:
-        return (
-          <ReviewConfirm
-            selectedProducts={selectedProducts}
-            orderDetails={orderDetails}
-            total={total}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  const shippingCost = 5.0;
+  const finalTotal = totalPrice + shippingCost;
 
   const canProceed = () => {
-    if (currentStep === 1) {
-      return itemsCount > 0;
-    }
-    if (currentStep === 2) {
-      return orderDetails.customerName && orderDetails.email && orderDetails.phone && orderDetails.address && orderDetails.deliveryDate;
-    }
-    return true;
+    return !!(
+      orderDetails.customerName &&
+      orderDetails.phone &&
+      orderDetails.address &&
+      orderDetails.deliveryDate &&
+      cart.length > 0
+    );
   };
+
+  // Ensure a default delivery date is set to today if empty
+  useEffect(() => {
+    if (!orderDetails.deliveryDate) {
+      setOrderDetails(prev => ({ ...prev, deliveryDate: today }));
+    }
+  }, [today, orderDetails.deliveryDate]);
+
+  const handleConfirmOrder = async () => {
+    if (!canProceed()) return;
+    
+    // Prefer id if available, but also pass email so API can resolve
+    const customerId = userDetails?._id;
+    
+    setIsProcessing(true);
+    try {
+      // Resolve account email from multiple sources
+      let accountEmail = (userDetails?.email || user?.email || '').trim();
+      if (!accountEmail) {
+        try {
+          const raw = localStorage.getItem('csms_user');
+          if (raw) accountEmail = (JSON.parse(raw).email || '').trim();
+        } catch {}
+      }
+      if (!accountEmail) accountEmail = (orderDetails.email || '').trim();
+
+      const orderData = {
+        customerId,
+        customerEmail: accountEmail,
+        items: cart.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        })),
+        // Map to Order schema: line1, line2, city, notes
+        deliveryAddress: {
+          line1: orderDetails.address,
+          line2: '',
+          city: orderDetails.city,
+          notes: orderDetails.notes
+        },
+        deliveryETA: orderDetails.deliveryDate,
+        metadata: {
+          email: orderDetails.email,
+          notes: orderDetails.notes
+        }
+      };
+
+      console.log('Placing order with data:', orderData);
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+
+      const data = await response.json();
+      console.log('Order API response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to place order');
+      }
+      
+      // Clear cache on successful order
+      sessionStorage.removeItem('user_details_cache');
+      
+      clearCart();
+      alert('Order placed successfully! Order Number: ' + data.order.orderNumber);
+      router.push('/orders/track');
+    } catch (error) {
+      console.error('Order error:', error);
+      alert(error.message || 'Failed to place order. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (cart.length === 0) {
+    return null;
+  }
+
+  if (loadingUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
@@ -572,102 +363,231 @@ const PlaceOrder = () => {
 
       {/* Main Content */}
       <section className="pt-32 sm:pt-36 md:pt-40 pb-16 sm:pb-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Page Header */}
-          <div className="text-center mb-12 sm:mb-16">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-4 sm:mb-6">
-              Place Your Order
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4">
+              Shopping Cart
             </h1>
-            <div className="w-24 sm:w-32 h-1.5 bg-gradient-to-r from-blue-600 to-blue-800 mx-auto mb-6 sm:mb-8 rounded-full"></div>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl sm:max-w-3xl mx-auto font-medium px-2">
-              Get premium construction materials delivered to your site with our streamlined ordering process.
+            <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-blue-800 mx-auto mb-6 rounded-full"></div>
+            <p className="text-lg text-gray-600 font-medium">
+              {totalItems} Item{totalItems !== 1 ? 's' : ''}
             </p>
           </div>
 
-          {/* Step Indicator */}
-          <StepIndicator steps={steps} currentStep={currentStep} />
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Product List */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6">
+                <h2 className="text-2xl font-black text-gray-900 mb-6">PRODUCT DETAILS</h2>
+                
+                <div className="space-y-4">
+                  {cart.map(item => (
+                    <div key={item.id} className="flex gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-24 h-24 rounded-xl object-cover"
+                      />
+                      
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900 mb-1">{item.name}</h3>
+                        <p className="text-sm text-gray-600 mb-3">{item.unit}</p>
+                        
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="bg-white border border-gray-300 p-2 rounded-lg hover:bg-gray-100"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="w-12 text-center font-bold">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="bg-white border border-gray-300 p-2 rounded-lg hover:bg-gray-100"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
 
-          {/* Step Content */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mb-4"></div>
-              <p className="text-gray-600">Loading products...</p>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="text-red-500 text-xl mb-4">⚠️ {error}</div>
-              <button 
-                onClick={() => window.location.reload()}
-                className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
-              >
-                Retry
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="mb-12">
-                {renderCurrentStep()}
+                      <div className="flex flex-col items-end justify-between">
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-gray-900">
+                            SAR {(item.price * item.quantity).toFixed(2)}
+                          </p>
+                          <p className="text-sm text-gray-500">SAR {item.price} each</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Navigation Buttons */}
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              {/* Delivery Details */}
+              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6">
+                <h2 className="text-2xl font-black text-gray-900 mb-6">Delivery Details</h2>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
+                    <input
+                      type="text"
+                      name="customerName"
+                      value={orderDetails.customerName}
+                      onChange={handleOrderDetailChange}
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Email *</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={orderDetails.email}
+                      onChange={handleOrderDetailChange}
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Phone *</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={orderDetails.phone}
+                      onChange={handleOrderDetailChange}
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      placeholder="+966 XX XXX XXXX"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">City *</label>
+                    <select
+                      name="city"
+                      value={orderDetails.city}
+                      onChange={handleOrderDetailChange}
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                    >
+                      <option value="Jeddah">Jeddah</option>
+                      <option value="Makkah">Makkah</option>
+                    </select>
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Delivery Address *</label>
+                    <textarea
+                      name="address"
+                      value={orderDetails.address}
+                      onChange={handleOrderDetailChange}
+                      rows="3"
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      placeholder="Enter complete delivery address"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Delivery Date *</label>
+                    <input
+                      type="date"
+                      name="deliveryDate"
+                      value={orderDetails.deliveryDate}
+                      onChange={handleOrderDetailChange}
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      min={today}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Notes (Optional)</label>
+                    <textarea
+                      name="notes"
+                      value={orderDetails.notes}
+                      onChange={handleOrderDetailChange}
+                      rows="3"
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      placeholder="Special instructions"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sticky top-24">
+                <h2 className="text-2xl font-black text-gray-900 mb-6">Order Summary</h2>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between text-gray-700">
+                    <span className="font-medium">ITEMS {totalItems}</span>
+                    <span className="font-bold">SAR {totalPrice.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-700 font-medium">SHIPPING</span>
+                      <button className="text-blue-600 hover:underline font-semibold flex items-center gap-1">
+                        Standard - SAR {shippingCost.toFixed(2)}
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">PROMO CODE</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Enter your code"
+                        className="flex-1 rounded-xl border-2 border-gray-200 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                      />
+                      <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-xl font-bold text-sm">
+                        APPLY
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200 mb-6">
+                  <div className="flex justify-between mb-4">
+                    <span className="text-lg font-bold text-gray-900">TOTAL COST</span>
+                    <span className="text-2xl font-black text-gray-900">SAR {finalTotal.toFixed(2)}</span>
+                  </div>
+                  
+                  <button
+                    onClick={handleConfirmOrder}
+                    disabled={!canProceed() || isProcessing}
+                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2 ${
+                      canProceed() && !isProcessing
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    <CheckCircle className="h-5 w-5" />
+                    {isProcessing ? 'Processing...' : 'CHECKOUT'}
+                  </button>
+                </div>
+                
                 <button
-                  onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-                  disabled={currentStep === 1}
-                  className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold transition-all duration-300 ${
-                    currentStep === 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                  }`}
+                  onClick={() => router.push('/products')}
+                  className="w-full text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center justify-center gap-2 py-2"
                 >
-                  Previous Step
+                  <ArrowRight className="h-4 w-4 rotate-180" />
+                  Continue Shopping
                 </button>
-
-                {currentStep < 3 ? (
-                  <button
-                    onClick={() => setCurrentStep(currentStep + 1)}
-                    disabled={!canProceed()}
-                    className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center ${
-                      canProceed()
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    Next Step
-                    <ArrowRight className="h-5 w-5 ml-2" />
-                  </button>
-                ) : (
-                  <button
-                    disabled={!canProceed()}
-                    onClick={async () => {
-                      if (!canProceed()) return;
-                      try {
-                        const items = selectedProducts.filter(p => p.quantity > 0).map(p => ({ name: p.name, unitPrice: p.price, quantity: p.quantity }));
-                        const res = await fetch('/api/payments/create-checkout-session', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ items, customerEmail: orderDetails.email })
-                        });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error || 'Failed to start checkout');
-                        window.location.href = data.url;
-                      } catch (e) {
-                        alert(e.message || 'Payment initialization failed');
-                      }
-                    }}
-                    className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center ${
-                      canProceed()
-                        ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    Confirm Order
-                  </button>
-                )}
               </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </section>
     </div>

@@ -371,7 +371,7 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
 
-                <Link href="/place-order" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
+                <Link href="/orders/place" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
                   Place Order
                 </Link>
                 <Link href="/track-order" className="px-4 py-2 text-black-800 hover:text-blue-600 font-medium transition-all duration-300 rounded-full hover:bg-white/40 text-sm">
@@ -426,7 +426,7 @@ const CustomerDashboard = () => {
                   <Link href="/products" className="px-4 py-3 text-gray-800 hover:text-blue-600 hover:bg-white/40 rounded-2xl font-medium transition-all duration-300">
                     Products
                   </Link>
-                  <Link href="/place-order" className="px-4 py-3 text-gray-800 hover:text-blue-600 hover:bg-white/40 rounded-2xl font-medium transition-all duration-300">
+                  <Link href="/orders/place" className="px-4 py-3 text-gray-800 hover:text-blue-600 hover:bg-white/40 rounded-2xl font-medium transition-all duration-300">
                     Place Order
                   </Link>
                   <Link href="/track-order" className="px-4 py-3 text-gray-800 hover:text-blue-600 hover:bg-white/40 rounded-2xl font-medium transition-all duration-300">
@@ -588,7 +588,7 @@ const CustomerDashboard = () => {
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-8">
               <div className="text-lg font-black text-gray-900 mb-6">Quick Actions</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Link href="/place-order" className="group bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-4 font-bold flex items-center justify-center shadow hover:shadow-lg transition-all">
+                <Link href="/orders/place" className="group bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-4 font-bold flex items-center justify-center shadow hover:shadow-lg transition-all">
                   <Package className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                   Place Order
                 </Link>

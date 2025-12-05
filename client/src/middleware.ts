@@ -1,43 +1,58 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 // Define public routes that don't require authentication
-const isPublicRoute = createRouteMatcher([
+const publicRoutes = [
   '/',
-  '/login(.*)',
-  '/signup(.*)',
+  '/login',
+  '/signup',
   '/api/auth/login',
   '/api/auth/signup',
-]);
+];
 
 // Define admin routes that require admin role
-const isAdminRoute = createRouteMatcher([
-  '/admin(.*)',
-  '/api/admin(.*)',
-]);
+const adminRoutes = [
+  '/admin',
+  '/api/admin',
+];
 
-export default clerkMiddleware(async (auth, request) => {
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if the route is public
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(`${route}/`)
+  );
+
   // Allow public routes
-  if (isPublicRoute(request)) {
-    return;
+  if (isPublicRoute) {
+    return NextResponse.next();
   }
 
-  // Protect all other routes - require authentication
-  await auth.protect();
+  // Check for authentication (user stored in localStorage on client side)
+  // Note: Middleware runs on server, so we can't check localStorage here
+  // The actual auth check will be done client-side in RequireAuth component
+  // This middleware is mainly for API route protection
 
-  // For admin routes, you can add additional role checks here
-  // This would require setting up user metadata in Clerk dashboard
-  if (isAdminRoute(request)) {
-    const { userId, sessionClaims } = await auth();
-    
-    // Check if user has admin role (you need to set this in Clerk metadata)
-    const role = (sessionClaims?.publicMetadata as { role?: string })?.role;
-    
-    if (role !== 'admin') {
-      // Redirect non-admin users trying to access admin routes
-      return Response.redirect(new URL('/dashboard', request.url));
-    }
+  // For API routes, check for authentication
+  if (pathname.startsWith('/api/')) {
+    // You can add token-based authentication here if needed
+    // For now, let the API routes handle their own auth
+    return NextResponse.next();
   }
-});
+
+  // Check if the route requires admin access
+  const isAdminRoute = adminRoutes.some(route => 
+    pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  if (isAdminRoute) {
+    // Admin check will be done client-side in RequireAuth component
+    return NextResponse.next();
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

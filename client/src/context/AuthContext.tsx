@@ -7,6 +7,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
   - In real integration replace with API + secure tokens
 */
 type User = {
+  _id?: string;
   email: string;
   role: 'customer' | 'admin';
   name?: string;
@@ -22,7 +23,7 @@ type AuthContextValue = {
   isAuthenticated: boolean;
 };
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null); // { email, role }
@@ -97,9 +98,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Extract user data from API response
       const u: User = { 
-        email: data.email, 
-        role: data.role as User['role'],
-        name: data.fullName || data.profile?.firstName || email.split('@')[0]
+        _id: data.user?._id || data._id,
+        email: data.user?.email || data.email, 
+        role: (data.user?.role || data.role) as User['role'],
+        name: data.user?.fullName || data.fullName || data.user?.profile?.firstName || data.profile?.firstName || email.split('@')[0]
       };
       
       localStorage.setItem('csms_user', JSON.stringify(u));

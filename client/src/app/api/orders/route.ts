@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
+import User from '@/models/User.js';
 
 /**
  * GET /api/orders
@@ -57,7 +58,28 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { customerId, items, deliveryAddress, deliveryETA, metadata } = body;
+    let { customerId, customerEmail, items, deliveryAddress, deliveryETA, metadata } = body;
+
+    // Resolve customer by email if id is not provided
+    if (!customerId && customerEmail) {
+      try {
+        const customer = await User.findOne({ email: String(customerEmail).toLowerCase() }).select('_id');
+        if (customer) {
+          customerId = customer._id;
+        } else {
+          return NextResponse.json(
+            { error: 'Customer not found' },
+            { status: 404 }
+          );
+        }
+      } catch (e) {
+        console.error('Lookup customer by email failed:', e);
+        return NextResponse.json(
+          { error: 'Failed to resolve customer' },
+          { status: 500 }
+        );
+      }
+    }
 
     // Validate required fields
     if (!customerId || !items || items.length === 0) {

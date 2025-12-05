@@ -84,4 +84,5 @@ userSchema.virtual('fullName').get(function() {
 userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model('User', userSchema);
+// Prevent OverwriteModelError during dev/hot reload
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);
