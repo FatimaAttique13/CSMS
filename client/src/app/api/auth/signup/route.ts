@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User.js';
+import { generateVerificationToken } from '@/lib/jwt';
+import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +27,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    console.log('🔐 Generated verification token:', verificationToken.substring(0, 20) + '...');
+    console.log('⏰ Token expiry:', verificationTokenExpiry);
+
     // Create new user
     const user = await User.create({
       email: email.toLowerCase(),
@@ -32,22 +41,39 @@ export async function POST(request: NextRequest) {
       role: role || 'customer',
       profile: profile || {},
       isActive: true,
+      emailVerified: false,
+      verificationToken,
+      verificationTokenExpiry,
     });
 
-    // Remove password from response
+    console.log('✅ User created with ID:', user._id);
+    console.log('📧 Email:', user.email);
+    console.log('🔑 Token saved:', user.verificationToken ? 'YES' : 'NO');
+    console.log('⏱️ Expiry saved:', user.verificationTokenExpiry ? 'YES' : 'NO');
+
+    // Send verification email
+    const emailResult = await sendVerificationEmail(user.email, verificationToken);
+    
+    if (!emailResult.success) {
+      console.warn('⚠️ Failed to send verification email, but user was created');
+    }
+
+    // Remove sensitive fields from response
     const userResponse = {
       _id: user._id,
       email: user.email,
       role: user.role,
       profile: user.profile,
       isActive: user.isActive,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     };
 
     return NextResponse.json(
       { 
-        message: 'User created successfully',
-        user: userResponse 
+        message: 'User created successfully. Please check your email to verify your account.',
+        user: userResponse,
+        emailSent: emailResult.success
       },
       { status: 201 }
     );

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { Factory, Mail, Lock, UserPlus } from 'lucide-react';
+import { Factory, Mail, Lock, UserPlus, CheckCircle } from 'lucide-react';
 
 const Signup = () => {
   const { signup } = useAuth();
@@ -12,30 +12,73 @@ const Signup = () => {
   const [form, setForm] = useState({ email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
+    
     if (form.password !== form.confirm) {
       setError('Passwords do not match');
       return;
     }
+
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
     try {
-      const u = await signup({ email: form.email, password: form.password });
-      if (u.role === 'admin') {
-        router.replace('/admin/analytics');
-      } else {
-        router.replace('/dashboard');
-      }
+      const result = await signup({ email: form.email, password: form.password });
+      
+      // Show success message
+      setSuccess(true);
+      
+      // Don't auto-redirect - user needs to verify email first
+      // Clear form
+      setForm({ email: '', password: '', confirm: '' });
     } catch (err) {
-      setError('Signup failed');
+      const errorMessage = err.message || 'Signup failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  // Success state UI
+  if (success) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-6 py-16 font-sans">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-10 text-center">
+            <div className="mb-6">
+              <CheckCircle className="h-20 w-20 text-green-500 mx-auto" />
+            </div>
+            <h2 className="text-3xl font-black text-gray-900 mb-4">Check Your Email!</h2>
+            <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+              We've sent a verification link to <strong>{form.email || 'your email'}</strong>. 
+              Please click the link to verify your account before logging in.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-blue-800 font-medium">
+                💡 Tip: Check your spam folder if you don't see the email within a few minutes.
+              </p>
+            </div>
+            <Link 
+              href="/login"
+              className="inline-block w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transition-all shadow-lg"
+            >
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-16 font-sans">
@@ -87,6 +130,7 @@ const Signup = () => {
                 <Lock className="h-5 w-5 text-gray-400 mr-3" />
                 <input type="password" name="password" value={form.password} onChange={handleChange} required placeholder="••••••••" className="flex-1 outline-none" />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Confirm Password *</label>
@@ -95,7 +139,11 @@ const Signup = () => {
                 <input type="password" name="confirm" value={form.confirm} onChange={handleChange} required placeholder="••••••••" className="flex-1 outline-none" />
               </div>
             </div>
-            {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                <p className="text-red-600 text-sm font-medium">{error}</p>
+              </div>
+            )}
             <button type="submit" disabled={loading} className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 text-white transition-all shadow-lg ${loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-[1.02]'}`}>
               <UserPlus className="h-5 w-5" /> {loading ? 'Creating...' : 'Create Account'}
             </button>

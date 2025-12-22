@@ -9,10 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.4",
     "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.545.0",
     "mongoose": "^8.19.1",
     "next": "15.5.4",
+    "nodemailer": "^7.0.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "xlsx": "^0.18.5"

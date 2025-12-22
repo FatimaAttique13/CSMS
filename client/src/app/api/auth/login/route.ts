@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User.js';
+import { generateToken } from '@/lib/jwt';
 
 // Define types for User document methods
 interface UserDocument {
@@ -16,6 +17,7 @@ interface UserDocument {
   };
   addresses: any[];
   isActive: boolean;
+  emailVerified: boolean;
   lastLogin?: Date;
   fullName: string;
   comparePassword: (candidatePassword: string) => Promise<boolean>;
@@ -61,6 +63,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { 
+          error: 'Please verify your email before logging in. Check your inbox for the verification link.',
+          errorType: 'EMAIL_NOT_VERIFIED',
+          email: user.email
+        },
+        { status: 403 }
+      );
+    }
+
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
     
@@ -75,6 +89,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate JWT token
+    const token = generateToken(user._id.toString(), user.email, user.role);
+
     // Update last login
     user.lastLogin = new Date();
     await user.save();
@@ -87,17 +104,31 @@ export async function POST(request: NextRequest) {
       profile: user.profile,
       addresses: user.addresses,
       isActive: user.isActive,
+      emailVerified: user.emailVerified,
       lastLogin: user.lastLogin,
       fullName: user.fullName,
     };
 
-    return NextResponse.json(
+    // Create response with httpOnly cookie
+    const response = NextResponse.json(
       { 
         message: 'Login successful',
-        user: userResponse 
+        user: userResponse,
+        token // Also return token in response for localStorage (temporary)
       },
       { status: 200 }
     );
+
+    // Set JWT token as httpOnly cookie (more secure)
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error: any) {
     console.error('Login error:', error);
     return NextResponse.json(

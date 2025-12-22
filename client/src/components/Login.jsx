@@ -29,7 +29,10 @@ const Login = () => {
       }
     } catch (err) {
       // Check for specific error types
-      if (err.response?.data?.errorType === 'USER_NOT_FOUND') {
+      if (err.errorType === 'EMAIL_NOT_VERIFIED') {
+        // Email not verified
+        setError('Please verify your email before logging in. Check your inbox for the verification link.');
+      } else if (err.response?.data?.errorType === 'USER_NOT_FOUND') {
         // User doesn't exist - redirect to signup for non-admin
         setError('No account found with this email. Redirecting to signup...');
         setTimeout(() => {

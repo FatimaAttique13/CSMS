@@ -44,6 +44,26 @@ const userSchema = new mongoose.Schema({
     type: Boolean, 
     default: true 
   },
+  // Email verification fields
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationToken: {
+    type: String,
+    sparse: true
+  },
+  verificationTokenExpiry: {
+    type: Date
+  },
+  // Password reset fields
+  resetPasswordToken: {
+    type: String,
+    sparse: true
+  },
+  resetPasswordTokenExpiry: {
+    type: Date
+  },
   // Stripe integration
   stripeCustomerId: { 
     type: String, 
@@ -85,4 +105,10 @@ userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });
 
 // Prevent OverwriteModelError during dev/hot reload
+// Only clear cache in development
+if (process.env.NODE_ENV !== 'production' && mongoose.models.User) {
+  delete mongoose.models.User;
+}
+
+// Export the model
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);
