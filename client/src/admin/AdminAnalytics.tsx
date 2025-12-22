@@ -714,27 +714,30 @@ const AdminAnalytics = () => {
                 }).join(', ');
 
                 return (
-                  <div className="flex flex-col sm:flex-row items-center gap-8">
-                    <div className="relative w-36 h-36 sm:w-40 sm:h-40" aria-label="Order status distribution">
+                  <div className="flex items-center gap-6">
+                    {/* Donut Chart */}
+                    <div className="relative w-28 h-28 flex-shrink-0" aria-label="Order status distribution">
                       <div
-                        className="w-full h-full rounded-full shadow-inner"
+                        className="w-full h-full rounded-full shadow-lg"
                         style={{ background: `conic-gradient(${segments})` }}
                       />
-                      <div className="absolute inset-4 bg-white rounded-full flex items-center justify-center border border-gray-100">
-                        <div className="text-center leading-tight">
-                          <div className="text-[11px] uppercase tracking-wide text-gray-500 font-semibold">Total</div>
-                          <div className="text-2xl font-black text-gray-900">{total}</div>
+                      <div className="absolute inset-3 bg-white rounded-full flex items-center justify-center shadow-inner">
+                        <div className="text-center">
+                          <div className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">TOTAL</div>
+                          <div className="text-3xl font-black text-gray-900">{total}</div>
                         </div>
                       </div>
                     </div>
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+
+                    {/* Status List */}
+                    <div className="flex-1 space-y-2.5">
                       {stops.map(s => (
-                        <div key={s.label} className="flex items-center justify-between bg-white rounded-xl border border-gray-100 p-3 shadow-sm hover:shadow transition-shadow">
-                          <div className="flex items-center">
-                            <span className="w-3 h-3 rounded-full mr-2.5 ring-2 ring-white" style={{ backgroundColor: s.color }}></span>
+                        <div key={s.label} className="flex items-center justify-between group hover:translate-x-1 transition-transform duration-200">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: s.color }}></div>
                             <span className="text-sm font-semibold text-gray-700">{s.label}</span>
                           </div>
-                          <div className="text-sm font-bold text-gray-900 tabular-nums">{s.value} • {Math.round(s.pct)}%</div>
+                          <span className="text-sm font-black text-gray-900 tabular-nums">{s.value}</span>
                         </div>
                       ))}
                     </div>

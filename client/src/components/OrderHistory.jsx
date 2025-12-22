@@ -91,7 +91,19 @@ const OrderHistory = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/orders');
+        
+        // Get user ID from auth context or localStorage
+        let customerId = user?._id;
+        if (!customerId) {
+          try {
+            const raw = localStorage.getItem('csms_user');
+            if (raw) customerId = JSON.parse(raw)._id;
+          } catch {}
+        }
+
+        // Fetch orders for this customer
+        const url = customerId ? `/api/orders?customerId=${customerId}` : '/api/orders';
+        const response = await fetch(url);
         
         if (!response.ok) {
           throw new Error('Failed to fetch orders');
@@ -99,8 +111,11 @@ const OrderHistory = () => {
 
         const data = await response.json();
         
-        if (Array.isArray(data)) {
-          const mapped = data.map(o => ({
+        // Handle both { orders: [...] } and [...] response formats
+        const ordersArray = data.orders || data;
+        
+        if (Array.isArray(ordersArray)) {
+          const mapped = ordersArray.map(o => ({
             id: o._id || o.orderNumber || `ORD-${Date.now()}`,
             date: o.createdAt || o.orderDate || new Date().toISOString(),
             status: o.status || STATUS.PENDING,
@@ -113,7 +128,7 @@ const OrderHistory = () => {
               unit: item.unit || 'units',
               unitPrice: item.unitPrice || item.price || 0
             })) : [],
-            total: typeof o.totalAmount === 'number' ? o.totalAmount : 0,
+            total: typeof o.totalAmount === 'number' ? o.totalAmount : (typeof o.total === 'number' ? o.total : 0),
             itemsCount: Array.isArray(o.items) ? o.items.reduce((sum, it) => sum + (it.quantity || 0), 0) : 0
           }));
           setOrders(mapped);

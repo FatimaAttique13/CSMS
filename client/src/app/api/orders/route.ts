@@ -103,15 +103,25 @@ export async function POST(request: NextRequest) {
 
       if (!product.isActive) {
         return NextResponse.json(
-          { error: `Product is not available: ${product.name}` },
+          { error: `Product "${product.name}" is currently unavailable` },
           { status: 400 }
         );
       }
 
-      // Check stock
+      // Check if product is out of stock
+      if (product.stockQuantity === 0) {
+        return NextResponse.json(
+          { error: `Product "${product.name}" is out of stock` },
+          { status: 400 }
+        );
+      }
+
+      // Check if requested quantity exceeds available stock
       if (product.stockQuantity < item.quantity) {
         return NextResponse.json(
-          { error: `Insufficient stock for product: ${product.name}` },
+          { 
+            error: `Insufficient stock for "${product.name}". Only ${product.stockQuantity} ${product.unit} available, but ${item.quantity} ${product.unit} requested.` 
+          },
           { status: 400 }
         );
       }

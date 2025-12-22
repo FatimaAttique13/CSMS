@@ -15,15 +15,21 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const isActive = searchParams.get('isActive');
 
-    // Build query
+    // Build query - by default, only show active products
     const query: any = {};
+    
+    // Only show active products unless explicitly requesting inactive ones
+    if (isActive === 'false') {
+      query.isActive = false;
+    } else if (isActive === 'all') {
+      // Don't filter by isActive at all
+    } else {
+      // Default: only show active products
+      query.isActive = true;
+    }
     
     if (category) {
       query.category = category;
-    }
-    
-    if (isActive !== null && isActive !== undefined) {
-      query.isActive = isActive === 'true';
     }
     
     if (search) {
