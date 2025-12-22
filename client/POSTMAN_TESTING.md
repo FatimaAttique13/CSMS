@@ -2,36 +2,7 @@
 
 Complete guide for testing CSMS APIs using the provided Postman collection.
 
-## 🚀 Quick Start
 
-### 1. Import the Collection
-
-1. Open Postman
-2. Click **Import** button (top left)
-3. Select **File** tab
-4. Choose `CSMS_Postman_Collection.json`
-5. Click **Import**
-
-### 2. Configure Environment
-
-The collection uses variables that are automatically set during testing. Default base URL is `http://localhost:3001`.
-
-To change the base URL:
-1. Click on the collection name
-2. Go to **Variables** tab
-3. Update `baseUrl` value
-4. Click **Save**
-
-### 3. Start Your Development Server
-
-```bash
-cd client
-npm run dev
-```
-
-Server should be running at `http://localhost:3001`
-
----
 
 ## 📋 Testing Workflow
 

@@ -20,6 +20,9 @@ lerna-debug.log*
 .pnpm-debug.log*
 FRONTEND_FIX_SUMMARY.md
 READY_TO_TEST.md
+SETUP_GUIDE.md
+API_TESTING.md
+CSMS.rar
 .cache
 .next
 out

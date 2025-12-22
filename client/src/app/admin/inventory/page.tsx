@@ -1,7 +1,12 @@
 'use client';
 
 import Inventory from '@/admin/Inventory';
+import RequireAuth from '@/components/RequireAuth';
 
 export default function InventoryPage() {
-  return <Inventory />;
+  return (
+    <RequireAuth roles={['admin']}>
+      <Inventory />
+    </RequireAuth>
+  );
 }

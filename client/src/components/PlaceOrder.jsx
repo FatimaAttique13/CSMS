@@ -235,7 +235,7 @@ const PlaceOrder = () => {
 
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your details...</p>
@@ -245,7 +245,7 @@ const PlaceOrder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
       {/* Glassmorphic Navbar - Same as other pages */}
       <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto px-2 sm:px-4">

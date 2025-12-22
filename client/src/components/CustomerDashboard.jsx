@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Factory,
@@ -136,8 +137,16 @@ const ProgressSteps = ({ status }) => {
 
 const CustomerDashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { user, logout } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Redirect admin users to admin analytics
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      router.replace('/admin/analytics');
+    }
+  }, [user, router]);
 
   // Filters and UI state
   const [timeframe, setTimeframe] = useState('30d'); // 7d | 30d | ytd | all
@@ -296,7 +305,7 @@ const CustomerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
       {/* Pill Navbar (consistent with other pages) */}
       <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto px-2 sm:px-4">

@@ -38,7 +38,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/40 to-gray-100 flex items-center justify-center px-6 py-16 font-sans">
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-16 font-sans">
       <div className="w-full max-w-4xl grid lg:grid-cols-2 gap-10 items-center">
         {/* Left Branding Panel */}
         <div className="hidden lg:flex flex-col gap-8 bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-10 shadow-2xl">
@@ -53,11 +53,20 @@ const Signup = () => {
           </div>
           <h2 className="text-4xl font-black text-gray-900 leading-tight">Create Account</h2>
           <p className="text-gray-600 text-lg font-medium leading-relaxed">Join the platform for a smarter, faster, and more transparent construction material supply workflow.</p>
-          <ul className="space-y-3 text-sm font-medium text-gray-600">
-            <li className="flex gap-3 items-start"><span className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-700 font-bold flex items-center justify-center text-xs">✓</span> Demo admin: admin@gmail.com / admin</li>
-            <li className="flex gap-3 items-start"><span className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-700 font-bold flex items-center justify-center text-xs">✓</span> Access order tracking & analytics</li>
-            <li className="flex gap-3 items-start"><span className="w-6 h-6 rounded-lg bg-blue-600/10 text-blue-700 font-bold flex items-center justify-center text-xs">✓</span> Secure session stored locally (demo)</li>
-          </ul>
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-2xl bg-blue-600/10 text-blue-700 font-black flex items-center justify-center">1</span>
+              <p className="text-gray-600 font-medium">Track orders in real-time</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-2xl bg-blue-600/10 text-blue-700 font-black flex items-center justify-center">2</span>
+              <p className="text-gray-600 font-medium">Access detailed analytics</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-2xl bg-blue-600/10 text-blue-700 font-black flex items-center justify-center">3</span>
+              <p className="text-gray-600 font-medium">Secure account management</p>
+            </div>
+          </div>
         </div>
 
         {/* Form Panel */}
@@ -92,7 +101,6 @@ const Signup = () => {
             </button>
           </form>
           <p className="text-gray-600 text-sm mt-8 font-medium text-center">Already have an account? <Link href="/login" className="text-blue-600 font-semibold hover:underline">Login</Link></p>
-          <p className="text-[11px] text-gray-400 mt-6 text-center">Demo only: Replace with secure backend auth in production.</p>
         </div>
       </div>
     </div>

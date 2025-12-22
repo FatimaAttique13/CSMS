@@ -1,7 +1,12 @@
 'use client';
 
 import AdminAnalytics from '@/admin/AdminAnalytics';
+import RequireAuth from '@/components/RequireAuth';
 
 export default function AdminAnalyticsPage() {
-  return <AdminAnalytics />;
+  return (
+    <RequireAuth roles={['admin']}>
+      <AdminAnalytics />
+    </RequireAuth>
+  );
 }

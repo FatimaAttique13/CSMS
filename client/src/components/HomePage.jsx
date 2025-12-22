@@ -1,6 +1,7 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 import { 
@@ -34,9 +35,17 @@ const HomePage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
+  const router = useRouter();
+
+  // Redirect admin users to admin analytics
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      router.replace('/admin/analytics');
+    }
+  }, [user, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
       {/* Pill-Shaped Glassy Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 p-3 sm:p-4 md:p-6">
         <div className="max-w-7xl mx-auto px-2 sm:px-4">

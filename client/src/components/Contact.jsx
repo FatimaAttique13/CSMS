@@ -18,7 +18,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100 font-sans">
+    <div className="min-h-screen bg-white font-sans">
       <div className="pt-32 pb-20 max-w-6xl mx-auto px-6">
         <div className="text-center mb-14">
           <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4">Get In <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">Touch</span></h1>

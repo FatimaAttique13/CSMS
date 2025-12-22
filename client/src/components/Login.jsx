@@ -57,7 +57,7 @@ const Login = () => {
   }, [user, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/40 to-gray-100 flex items-center justify-center px-6 py-16 font-sans">
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-16 font-sans">
       <div className="w-full max-w-4xl grid lg:grid-cols-2 gap-10 items-center">
         {/* Left Branding Panel */}
         <div className="hidden lg:flex flex-col gap-8 bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-10 shadow-2xl">
@@ -123,7 +123,6 @@ const Login = () => {
             </button>
           </form>
           <p className="text-gray-600 text-sm mt-8 font-medium text-center">Don't have an account? <Link href="/signup" className="text-blue-600 font-semibold hover:underline">Create one</Link></p>
-          <p className="text-[11px] text-gray-400 mt-6 text-center">Demo admin credentials: <span className="font-semibold">admin@csms.com</span> / <span className="font-semibold">admin</span></p>
         </div>
       </div>
     </div>
