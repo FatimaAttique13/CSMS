@@ -169,7 +169,7 @@ const PlaceOrder = () => {
     
     setIsProcessing(true);
     try {
-      // Resolve account email from multiple sources
+      // Resolve account email from multiple sources - prioritize authenticated user email
       let accountEmail = (userDetails?.email || user?.email || '').trim();
       if (!accountEmail) {
         try {
@@ -177,7 +177,13 @@ const PlaceOrder = () => {
           if (raw) accountEmail = (JSON.parse(raw).email || '').trim();
         } catch {}
       }
-      if (!accountEmail) accountEmail = (orderDetails.email || '').trim();
+      // Only use form email if no authenticated email found
+      if (!accountEmail) {
+        accountEmail = (orderDetails.email || '').trim();
+      } else {
+        // Override form email with authenticated email to prevent mismatch
+        console.log('Using authenticated email:', accountEmail, 'instead of form email:', orderDetails.email);
+      }
 
       const orderData = {
         customerId,
@@ -453,8 +459,10 @@ const PlaceOrder = () => {
                       name="email"
                       value={orderDetails.email}
                       onChange={handleOrderDetailChange}
-                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                      readOnly={!!(userDetails?.email || user?.email)}
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       placeholder="your.email@example.com"
+                      title={userDetails?.email || user?.email ? "Email from your account" : ""}
                     />
                   </div>
                   

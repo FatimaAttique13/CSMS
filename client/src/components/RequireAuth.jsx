@@ -15,13 +15,26 @@ export default function RequireAuth({ children, roles = [] }) {
 
   useEffect(() => {
     if (!loading) {
+      console.log('[RequireAuth] Auth check:', {
+        isAuthenticated,
+        role,
+        requiredRoles: roles,
+        pathname,
+        roleType: typeof role
+      });
+      
       if (!isAuthenticated) {
+        console.log('[RequireAuth] Not authenticated, redirecting to login');
         // Redirect to login, storing the intended destination
         router.push(`/login?from=${encodeURIComponent(pathname)}`);
       } else if (roles && roles.length > 0 && !roles.includes(role)) {
+        console.log('[RequireAuth] Role mismatch! User role:', role, 'Required:', roles);
         // Redirect unauthorized users (e.g., customer hitting admin page)
         const redirectPath = role === 'admin' ? '/admin/analytics' : '/';
+        console.log('[RequireAuth] Redirecting to:', redirectPath);
         router.push(redirectPath);
+      } else {
+        console.log('[RequireAuth] Access granted!');
       }
     }
   }, [isAuthenticated, role, loading, roles, router, pathname]);

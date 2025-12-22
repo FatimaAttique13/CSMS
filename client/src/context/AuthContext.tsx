@@ -32,7 +32,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const raw = localStorage.getItem('csms_user');
     if (raw) {
-      try { setUser(JSON.parse(raw)); } catch { /* ignore */ }
+      try { 
+        const parsed = JSON.parse(raw);
+        console.log('[AuthContext] Loading user from localStorage:', parsed);
+        console.log('[AuthContext] Role from storage:', parsed.role, 'Type:', typeof parsed.role);
+        setUser(parsed);
+      } catch { /* ignore */ }
     }
     setLoading(false);
   }, []);
@@ -60,12 +65,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Extract user data from API response
+      const userData = data.user || data; // Handle both {user: {...}} and direct {...} response
       const u: User = { 
-        email: data.email, 
-        role: data.role as User['role'],
-        name: data.fullName || data.profile?.firstName || email.split('@')[0]
+        _id: userData._id,
+        email: userData.email, 
+        role: userData.role as User['role'],
+        name: userData.fullName || userData.profile?.firstName || email.split('@')[0]
       };
       
+      console.log('[AuthContext] Login successful - User data:', u);
+      console.log('[AuthContext] Role:', u.role, 'Type:', typeof u.role);
       localStorage.setItem('csms_user', JSON.stringify(u));
       setUser(u);
       return u;
