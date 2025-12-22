@@ -63,8 +63,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
+    // Skip email verification for hardcoded admin account
+    const isHardcodedAdmin = user.email === 'admin@csms.com';
+    
+    // Check if email is verified (skip for hardcoded admin)
+    if (!isHardcodedAdmin && !user.emailVerified) {
       return NextResponse.json(
         { 
           error: 'Please verify your email before logging in. Check your inbox for the verification link.',

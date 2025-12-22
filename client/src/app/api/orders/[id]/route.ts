@@ -37,6 +37,7 @@ export async function GET(
 
 /**
  * PATCH /api/orders/[id]
+ * PUT /api/orders/[id]
  * Update order status or other fields
  */
 export async function PATCH(
@@ -107,6 +108,9 @@ export async function PATCH(
     );
   }
 }
+
+// Alias PUT to PATCH for convenience
+export const PUT = PATCH;
 
 /**
  * DELETE /api/orders/[id]

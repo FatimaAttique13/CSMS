@@ -187,127 +187,56 @@ const TrackOrder = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  // Mock orders (same as other pages)
-  const orders = useMemo(() => ([
-    {
-      id: 'ORD-2024-0001',
-      date: '2024-09-18T09:45:00Z',
-      status: STATUS.DELIVERED,
-      city: 'Jeddah',
-      address: 'King Abdullah Road, Jeddah 21589',
-      notes: 'Deliver to gate 3',
-      items: [
-        { name: 'Premium Portland Cement', qty: 50, unit: 'bags', unitPrice: 75 },
-        { name: 'Coarse Sand', qty: 2, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0002',
-      date: '2024-09-21T14:20:00Z',
-      status: STATUS.OUT_FOR_DELIVERY,
-      city: 'Makkah',
-      address: 'Al Haramain Rd, Makkah 24227',
-      notes: '',
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 12, unit: 'tons', unitPrice: 45 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0003',
-      date: '2024-10-03T08:05:00Z',
-      status: STATUS.CONFIRMED,
-      city: 'Jeddah',
-      address: 'Site B, Near North Gate',
-      notes: 'Call before arrival',
-      items: [
-        { name: 'Premium Portland Cement', qty: 30, unit: 'bags', unitPrice: 75 },
-        { name: 'Coarse Sand', qty: 4, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0004',
-      date: '2024-10-10T16:40:00Z',
-      status: STATUS.PENDING,
-      city: 'Jeddah',
-      address: 'Warehouse 12, Industrial Area',
-      notes: '',
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 5, unit: 'tons', unitPrice: 45 },
-        { name: 'Coarse Sand', qty: 3, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0005',
-      date: '2024-08-29T11:10:00Z',
-      status: STATUS.CANCELLED,
-      city: 'Makkah',
-      address: 'Project Alpha, Sector 7',
-      notes: 'Client cancelled',
-      items: [
-        { name: 'Premium Portland Cement', qty: 20, unit: 'bags', unitPrice: 75 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0006',
-      date: '2024-07-19T10:00:00Z',
-      status: STATUS.DELIVERED,
-      city: 'Jeddah',
-      address: 'King Abdullah Road, Jeddah 21589',
-      notes: '',
-      items: [
-        { name: 'Premium Portland Cement', qty: 60, unit: 'bags', unitPrice: 75 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0007',
-      date: '2024-10-12T07:55:00Z',
-      status: STATUS.DELIVERED,
-      city: 'Makkah',
-      address: 'Downtown Site C, Gate 2',
-      notes: '',
-      items: [
-        { name: 'Coarse Sand', qty: 6, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0008',
-      date: '2024-09-25T13:30:00Z',
-      status: STATUS.CONFIRMED,
-      city: 'Jeddah',
-      address: 'Al Faisaliyah District, Plot 22',
-      notes: 'Unload near storage',
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 8, unit: 'tons', unitPrice: 45 },
-        { name: 'Coarse Sand', qty: 2, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0009',
-      date: '2024-10-15T18:20:00Z',
-      status: STATUS.PENDING,
-      city: 'Makkah',
-      address: 'Site D, East Zone',
-      notes: '',
-      items: [
-        { name: 'Premium Portland Cement', qty: 40, unit: 'bags', unitPrice: 75 }
-      ]
-    },
-    {
-      id: 'ORD-2024-0010',
-      date: '2024-06-14T09:15:00Z',
-      status: STATUS.DELIVERED,
-      city: 'Jeddah',
-      address: 'Seaside District, Lot 5',
-      notes: 'Leave with foreman',
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 10, unit: 'tons', unitPrice: 45 }
-      ]
-    }
-  ].map(o => ({
-    ...o,
-    total: o.items.reduce((sum, it) => sum + it.qty * it.unitPrice, 0),
-    itemsCount: o.items.reduce((sum, it) => sum + it.qty, 0)
-  }))), []);
+  // Fetch real orders from API
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch orders on mount
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user?._id) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(`/api/orders?customerId=${user._id}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+
+        const data = await response.json();
+        
+        // Transform API orders to match component format
+        const transformedOrders = (data.orders || []).map(order => ({
+          id: order.orderNumber || order._id,
+          date: order.createdAt || order.date,
+          status: order.status,
+          city: order.deliveryAddress?.city || 'N/A',
+          address: `${order.deliveryAddress?.line1 || ''}${order.deliveryAddress?.line2 ? ', ' + order.deliveryAddress.line2 : ''}`.trim() || 'N/A',
+          notes: order.deliveryAddress?.notes || order.notes || '',
+          items: order.items.map(item => ({
+            name: item.name,
+            qty: item.quantity,
+            unit: item.unit,
+            unitPrice: item.unitPrice
+          })),
+          total: order.total,
+          itemsCount: order.items.reduce((sum, item) => sum + item.quantity, 0)
+        }));
+
+        setOrders(transformedOrders);
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user?._id]);
 
   const recentOrders = useMemo(
     () => [...orders].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5),
@@ -572,7 +501,37 @@ const TrackOrder = () => {
           </div>
 
           {/* Tracking Details */}
-          {!selectedOrder ? (
+          {loading ? (
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-10 border border-gray-100 shadow-xl text-center">
+              <div className="flex items-center justify-center gap-3">
+                <RefreshCw className="h-6 w-6 text-blue-600 animate-spin" />
+                <span className="text-gray-600 font-semibold">Loading your orders...</span>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 backdrop-blur-xl rounded-3xl p-10 border border-red-100 shadow-xl text-center">
+              <XCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <p className="text-red-600 font-semibold mb-4">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-6 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all"
+              >
+                Retry
+              </button>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-10 border border-gray-100 shadow-xl text-center">
+              <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 font-semibold text-lg mb-2">No orders found</p>
+              <p className="text-gray-500">You haven't placed any orders yet.</p>
+              <Link 
+                href="/orders/place" 
+                className="mt-6 inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold shadow hover:shadow-lg transition-all"
+              >
+                Place Your First Order
+              </Link>
+            </div>
+          ) : !selectedOrder ? (
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-10 border border-gray-100 shadow-xl text-center text-gray-600">
               Search for an order above to see live tracking details.
             </div>

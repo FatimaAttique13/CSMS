@@ -84,6 +84,7 @@ const AdminOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -103,6 +104,40 @@ const AdminOrders = () => {
       console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    setUpdatingStatus(true);
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update orders list
+        setOrders(orders.map(order => 
+          order._id === orderId ? { ...order, status: newStatus } : order
+        ));
+        
+        // Update selected order if it's the one being changed
+        if (selectedOrder?._id === orderId) {
+          setSelectedOrder({ ...selectedOrder, status: newStatus });
+        }
+
+        alert('Order status updated successfully!');
+      } else {
+        alert(data.error || 'Failed to update order status');
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Failed to update order status');
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -277,13 +312,15 @@ const AdminOrders = () => {
           {/* Orders Table */}
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b-2 border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-black text-gray-900">Order Number</th>
-                    <th className="px-6 py-4 text-left text-sm font-black text-gray-900">Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-black text-gray-900">Customer</th>
-                    <th className="px-6 py-4 text-left text-sm font-black text-gray-900">City</th>
+              <table classNdiv className="flex items-center gap-2">
+                            <button
+                              onClick={() => setSelectedOrder(order)}
+                              className="text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1"
+                            >
+                              <Eye className="h-4 w-4" />
+                              View
+                            </button>
+                          </div"px-6 py-4 text-left text-sm font-black text-gray-900">City</th>
                     <th className="px-6 py-4 text-left text-sm font-black text-gray-900">Items</th>
                     <th className="px-6 py-4 text-left text-sm font-black text-gray-900">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-black text-gray-900">Total</th>
@@ -375,9 +412,28 @@ const AdminOrders = () => {
         </div>
       </section>
 
-      {/* Order Detail Modal */}
-      {selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
+      {/* Order Detail className="flex-1">
+                    <p className="text-sm font-bold text-gray-500 mb-2">Status</p>
+                    <div className="flex items-center gap-3">
+                      <StatusBadge status={selectedOrder.status} />
+                      {selectedOrder.status !== STATUS.CANCELLED && (
+                        <select
+                          value={selectedOrder.status}
+                          onChange={(e) => handleStatusChange(selectedOrder._id, e.target.value)}
+                          disabled={updatingStatus}
+                          className="px-3 py-2 border-2 border-gray-200 rounded-xl font-semibold text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value={STATUS.PENDING}>{STATUS.PENDING}</option>
+                          <option value={STATUS.CONFIRMED}>{STATUS.CONFIRMED}</option>
+                          <option value={STATUS.OUT_FOR_DELIVERY}>{STATUS.OUT_FOR_DELIVERY}</option>
+                          <option value={STATUS.DELIVERED}>{STATUS.DELIVERED}</option>
+                          <option value={STATUS.CANCELLED}>{STATUS.CANCELLED}</option>
+                        </select>
+                      )}
+                    </div>
+                    {updatingStatus && (
+                      <p className="text-xs text-blue-600 mt-1">Updating status...</p>
+                    )}m z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
