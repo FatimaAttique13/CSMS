@@ -73,6 +73,11 @@ const InventoryPage = () => {
   const [addError, setAddError] = useState<string | null>(null);
   const [addSuccess, setAddSuccess] = useState(false);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  
+  // Delete confirmation state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const resetAddForm = () => {
     setNewItem({
@@ -221,6 +226,46 @@ const InventoryPage = () => {
       }
     } catch (err) {
       return { success: false, error: 'Network error' };
+    }
+  };
+
+  const deleteProduct = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        await fetchProducts(); // Refresh list
+        return { success: true };
+      } else {
+        const error = await response.json();
+        return { success: false, error: error.error || 'Failed to delete product' };
+      }
+    } catch (err) {
+      return { success: false, error: 'Network error' };
+    }
+  };
+
+  const handleDeleteClick = (item: any) => {
+    setItemToDelete(item);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+    
+    setDeleting(true);
+    const result = await deleteProduct(itemToDelete.id);
+    setDeleting(false);
+    
+    if (result.success) {
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+      // Show success message (you can add a toast notification here)
+      alert('Product deleted successfully!');
+    } else {
+      alert(`Failed to delete product: ${result.error}`);
     }
   };
 
@@ -387,9 +432,12 @@ const InventoryPage = () => {
               <Plus className="h-4 w-4 mr-1" />
               Restock
             </button>
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-semibold transition-colors duration-200 flex items-center justify-center">
-              <Eye className="h-4 w-4 mr-1" />
-              View
+            <button 
+              onClick={() => handleDeleteClick(item)}
+              className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-xl font-semibold transition-colors duration-200 flex items-center justify-center"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
             </button>
           </div>
         </div>
@@ -1266,6 +1314,58 @@ const InventoryPage = () => {
                 </div>
               )}
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && itemToDelete && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => !deleting && setShowDeleteModal(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-fadeIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+              
+              <h3 className="text-2xl font-black text-gray-900 mb-2">Delete Item?</h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete <span className="font-bold">{itemToDelete.name}</span>? 
+                This action will mark the item as inactive.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-2xl font-bold transition-all duration-300 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {deleting ? (
+                    <>
+                      <RefreshCw className="h-5 w-5 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-5 w-5" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

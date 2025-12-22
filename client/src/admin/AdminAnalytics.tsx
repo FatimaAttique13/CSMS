@@ -1,5 +1,5 @@
 "use client"
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Factory,
@@ -155,183 +155,48 @@ const AdminAnalytics = () => {
   const [query, setQuery] = useState('');
   const [cityFilter, setCityFilter] = useState('all'); // all | Jeddah | Makkah
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock admin orders dataset
-  const orders = useMemo<Order[]>(() => ([
-    {
-      id: 'ADM-2024-0001',
-      date: '2024-06-22T08:30:00Z',
-      customer: 'ABC Construction Group',
-      city: 'Jeddah',
-      status: STATUS.DELIVERED,
-      onTime: true,
-      items: [
-        { name: 'Premium Portland Cement', qty: 60, unit: 'bags', unitPrice: 75 },
-        { name: 'Coarse Sand', qty: 2, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0002',
-      date: '2024-07-11T10:45:00Z',
-      customer: 'Modern Builders Ltd',
-      city: 'Makkah',
-      status: STATUS.DELIVERED,
-      onTime: false,
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 12, unit: 'tons', unitPrice: 45 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0003',
-      date: '2024-08-05T14:10:00Z',
-      customer: 'Namaa Projects',
-      city: 'Jeddah',
-      status: STATUS.CONFIRMED,
-      onTime: null,
-      items: [
-        { name: 'Premium Portland Cement', qty: 30, unit: 'bags', unitPrice: 75 },
-        { name: 'Coarse Sand', qty: 3, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0004',
-      date: '2024-08-26T09:00:00Z',
-      customer: 'Al Noor Developers',
-      city: 'Makkah',
-      status: STATUS.CANCELLED,
-      onTime: null,
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 8, unit: 'tons', unitPrice: 45 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0005',
-      date: '2024-09-02T11:20:00Z',
-      customer: 'Rimal Holdings',
-      city: 'Jeddah',
-      status: STATUS.DELIVERED,
-      onTime: true,
-      items: [
-        { name: 'Coarse Sand', qty: 6, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0006',
-      date: '2024-09-14T16:55:00Z',
-      customer: 'Haramain Builders',
-      city: 'Makkah',
-      status: STATUS.OUT_FOR_DELIVERY,
-      onTime: null,
-      items: [
-        { name: 'Premium Portland Cement', qty: 50, unit: 'bags', unitPrice: 75 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0007',
-      date: '2024-09-28T07:45:00Z',
-      customer: 'Al Falah Contracting',
-      city: 'Jeddah',
-      status: STATUS.CONFIRMED,
-      onTime: null,
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 10, unit: 'tons', unitPrice: 45 },
-        { name: 'Coarse Sand', qty: 3, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0008',
-      date: '2024-10-01T13:05:00Z',
-      customer: 'ABC Construction Group',
-      city: 'Jeddah',
-      status: STATUS.DELIVERED,
-      onTime: true,
-      items: [
-        { name: 'Premium Portland Cement', qty: 40, unit: 'bags', unitPrice: 75 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0009',
-      date: '2024-10-04T18:30:00Z',
-      customer: 'Modern Builders Ltd',
-      city: 'Makkah',
-      status: STATUS.PENDING,
-      onTime: null,
-      items: [
-        { name: 'Coarse Sand', qty: 2, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0010',
-      date: '2024-10-08T12:40:00Z',
-      customer: 'Namaa Projects',
-      city: 'Jeddah',
-      status: STATUS.OUT_FOR_DELIVERY,
-      onTime: null,
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 14, unit: 'tons', unitPrice: 45 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0011',
-      date: '2024-05-27T10:10:00Z',
-      customer: 'Al Noor Developers',
-      city: 'Makkah',
-      status: STATUS.DELIVERED,
-      onTime: true,
-      items: [
-        { name: 'Construction Sand', qty: 5, unit: 'tons', unitPrice: 32 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0012',
-      date: '2024-06-05T09:30:00Z',
-      customer: 'Rimal Holdings',
-      city: 'Jeddah',
-      status: STATUS.DELIVERED,
-      onTime: true,
-      items: [
-        { name: 'Premium Portland Cement', qty: 20, unit: 'bags', unitPrice: 75 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0013',
-      date: '2024-07-29T15:20:00Z',
-      customer: 'Haramain Builders',
-      city: 'Makkah',
-      status: STATUS.DELIVERED,
-      onTime: false,
-      items: [
-        { name: 'Crushed Granite 20mm', qty: 9, unit: 'tons', unitPrice: 45 },
-        { name: 'Coarse Sand', qty: 2, unit: 'tons', unitPrice: 35 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0014',
-      date: '2024-09-19T08:15:00Z',
-      customer: 'Al Falah Contracting',
-      city: 'Jeddah',
-      status: STATUS.CANCELLED,
-      onTime: null,
-      items: [
-        { name: 'Construction Sand', qty: 4, unit: 'tons', unitPrice: 32 }
-      ]
-    },
-    {
-      id: 'ADM-2024-0015',
-      date: '2024-10-12T07:55:00Z',
-      customer: 'ABC Construction Group',
-      city: 'Makkah',
-      status: STATUS.DELIVERED,
-      onTime: true,
-      items: [
-        { name: 'Coarse Sand', qty: 7, unit: 'tons', unitPrice: 35 }
-      ]
-    }
-  ].map(o => ({
-    ...o,
-    total: o.items.reduce((sum, it) => sum + it.qty * it.unitPrice, 0),
-    itemsCount: o.items.reduce((sum, it) => sum + it.qty, 0)
-  }))), []);
+  // Fetch real orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch('/api/orders');
+        const data = await response.json();
+        
+        if (response.ok && data.orders) {
+          // Transform API orders to match our Order type
+          const transformedOrders: Order[] = data.orders.map((apiOrder: any) => ({
+            id: apiOrder.orderNumber || apiOrder._id,
+            date: apiOrder.createdAt,
+            customer: apiOrder.customer?.email || apiOrder.customer?.profile?.company || 'Unknown Customer',
+            city: apiOrder.deliveryAddress?.city || 'N/A',
+            status: apiOrder.status,
+            onTime: apiOrder.status === 'Delivered' ? true : null,
+            items: apiOrder.items.map((item: any) => ({
+              name: item.name,
+              qty: item.quantity,
+              unit: item.unit || 'units',
+              unitPrice: item.unitPrice
+            })),
+            total: apiOrder.total,
+            itemsCount: apiOrder.items.reduce((sum: number, it: any) => sum + it.quantity, 0)
+          }));
+          
+          setOrders(transformedOrders);
+        } else {
+          console.error('Failed to fetch orders:', data);
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   // Filtering by timeframe
   const filteredByTime = useMemo(() => {
@@ -524,6 +389,17 @@ const AdminAnalytics = () => {
   };
 
   const recent = useMemo(() => filteredOrders.slice(0, 8), [filteredOrders]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-semibold text-lg">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100" style={{ fontFamily: 'Inter, Segoe UI, system-ui, sans-serif' }}>
